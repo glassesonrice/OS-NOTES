@@ -1,0 +1,99 @@
+OS-Notes
+20260601 - 20260605
+=========
+Commands
+get-process | get-member -membertype "Property "  - List all processes with member type admin
+().count / measure-object - counts outputs probably
+where-object  - Filters results kind of
+-definition "string" - specifies a string
+Get-CimInstance Win32-service -filter "name='legoland'" | select-object name,description - Find a specific service 
+compare-object -ReferenceObject (GetContent .\old.txt) -differenceobject (Get-Content .\new.txt) - compare different files that are unique
+get-content ~.txt | sort-object  | select-object -last 21 - print out last 21 of an ascending sorted list 
+===============================
+HKLM | HKU | HKCU | HKCC | HKCR
+HKLM - Boot/Hardware info
+  Subkeys - Hardware | SAM | Security | System
+HKU - All User Profiles in System w/ different SIDs
+    - Env Settings | Shortcuts | file assoc
+    - S-1-5-18 | S-1-5-19 | S-1-5-20 | S-1-5-21
+HKCU - Copy of users' registry based on SID 
+HKCC - Symbolic Link to HKLM/Key/Subkey/Subkey/Subkey
+HKCR - Symbolic Link to HKLM/Key/Subkey
+     - File extension associations and COM reg info
+*Root keys stored on disk
+HIVE ON DISKS - SAM | SECURITY | SOFTWARE | SYSTEM | HARDWARE | .DEFAULT | <SID> | <SID>_CLASSES
+*Hives stored in %SYSTEMROOT%\System32\config
+HKLM\Hardware - dynamic in memory each boot
+HKU\<SID> - in %USERPROFILE%\NTUSER.DAT
+HKU\<SID>_CLASSES - in %USERPROFILE%\Application Data\Local\Microsoft\Windows\UsrClass.dat
+Hive File Extensions - .alt | .log | .sav
+Get-ChildItem - List all subkeys/contents
+get-item - List contents of reg key/subkey
+====================
+Commands
+regedit.exe - view/manipulate via gui
+reg.exe - view/manipulate via cli tool
+reg /?
+reg query - || get-childitem || get-itemproperty || get-item - display subkeys, values, data
+reg add /v /t /d - (value | type | data) || set-itemproperty - add new subkeys/entries
+reg delete - || remove-itemproperty - delete subkey
+new-item || new-itemProperty 
+======================================
+Powershell psdrive  - Like a file system drive but not exactly | data store location | only accessible via powershell
+Parameters - Name | PSProvider (FileSystem | Registry)| Root
+===============================
+Command
+get-psdrive - find ps drives
+================================
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\USB - USB Info
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\USBSTOR - USB storage devices
+HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\OpenSavePidlMRU - Recent MRU history (recently opened/saved files via common dialog boxes) 
+HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs - Recent Files
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles - Saved Network Profiles
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management - VirMemConfig
+HKEY_CURRENT_USER\Software\Microsoft\Windows Search\ProcessedSearchRoots - Search/Cortana
+HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search - Search/Cortana
+!!PERSISTENCE!!
+HKLM\Software\Microsoft\Windows\CurrentVersion\Run | RunOnce
+HKU\<SID>\Software\Microsoft\Windows\CurrentVersion\Run | RunOnce
+HKLM\SYSTEM\CurrentControlSet\services
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders
+HKLM\SOFTWARE\Microsoft\WindowsNT\CurrentVersion\Winlogon
+^^PERSISTENCE^^
+--------------------
+Registry Security Descriptors - ACL < Access Control Entries (ACE) | Descriptors can be explicit/inherited
+DACL - Who is allowed access
+SACL - Login attempts 
+Mandatory Integrity Control (MIC) - low-integ process cannot modify
+-------------------------------------------------------------------------
+Alternate Data Streams - implement filesystem forks to be compatible w/ other filesystems (default main stream is visible)
+  - Store metadata | hide data | does not change md5 hash | removed when copied to FAT32 | cannot be disabled | AV are ADS aware
+==============================
+Example :
+Set-Content reminder.txt -Value "social security numbers" -Stream secret.info - Secret into sec.info
+Get-Content reminder.txt - outputs reminder.txt (Secret)
+Get-Item reminder.txt -Stream * - View Stream (verbose)
+Get-Item reminder.txt -Stream * | Select FileName,Stream - View Stream (not so verbose)
+wscript .\text.txt:secret.vbs - execute ADS script
+certutil -hashfile test.txt MD5 - Check hash
+
+=================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
