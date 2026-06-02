@@ -77,9 +77,11 @@ Get-Item reminder.txt -Stream * - View Stream (verbose)
 Get-Item reminder.txt -Stream * | Select FileName,Stream - View Stream (not so verbose)
 wscript .\text.txt:secret.vbs - execute ADS script
 certutil -hashfile test.txt MD5 - Check hash
-
 =================
-
+Commands
+get-item Registry::HKEY_USERS\S-1-5-21-2210703670-3058593786-163404740-1003\SOFTWARE\Microsoft\Windows\CurrentVersion\Run - Show value of subkey in cli
+get-childitem 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\ProfileList' - Shows All profiles
+get-childitem 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles - Show networks
 
 
 
