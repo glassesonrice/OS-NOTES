@@ -82,8 +82,53 @@ Commands
 get-item Registry::HKEY_USERS\S-1-5-21-2210703670-3058593786-163404740-1003\SOFTWARE\Microsoft\Windows\CurrentVersion\Run - Show value of subkey in cli
 get-childitem 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\ProfileList' - Shows All profiles
 get-childitem 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles - Show networks
+get-acl C:\Windows\System32\drivers\etc | format-list
+get-childitem -Filter "readme" -recurse  - find a file recursively in curr dir
+get-childitem -hidden - find hidden items
+get-childitem -Path C:\Users\CTF -recurse | get-item -stream * | Where-Object {$_.Stream -ne ':$DATA'} - find hidden data streams recursively
+Get-content -Path "C:\Users\CTF\Documents\nothing_here" -Stream "hidden" - read ads via stream name
+
+UNIX/LINUX/UBUNTU
+===========
+Commands
+!!SITUTATIONAL AWARENESS!!
+hostname | uname -a - name of host you are on
+whoami | who | w - current user logged in
+ip addr | ifconfig - other logged in
+ip neigh | arp - view MAC addy of dev in net
+ip route | route - packets routed for specific dest addy
+ss | netstat - show net conn/listening ports
+nft list tables | ip tables -L - view fw rules
+sudo -l - cmds user can run w/ elevated perms
+ls -sail - verbose show dir
+cat /etc/pwd - view file
+netstat -antop - good trash
+ps -elf - open processes verbosely
+sudo !! - run last command inputted as root
+cat  /etc/sudoers - show what users have what permissions
+ls bacon 2 > /dev/null - throw errors into hell ** 0 stdin | 1 stdout| 2 stderr
+read r 4 | write w 2 | exe x 1 - always use 777
+grep - search data given string pattern (reg exp)
+ls -Rlisa - -R is recursively
+awk - string manip tool *Interesting
+sed - edits text and sent as stdout
+man -k - search for a keyword in man
+echo word | sha512ssum - echo'd word is sha'd
+whereis cat - find man pages
+find /home/garviel -type f -exec wc -l {} + | sort -rn - find files sorted by number of lines recursively
+awk -F: '{print $5}' /etc/passwd - specifically looks for comments in the passwd file
+grep -v "nologin" - grep with a not, finds things without the string, very cool
+
+^^SITUATIONAL AWARENESS^^
 
 
+
+
+
+
+
+
+===========
 
 
 
