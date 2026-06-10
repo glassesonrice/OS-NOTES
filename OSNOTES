@@ -1,5 +1,14 @@
 OS-Notes
 20260601 - 20260605
+Float IP:      10.50.16.168  = andy.dwyer:BurtMacklinFBI
+Ubuntu IP:     10.50.190.239 = cvte:cvte
+Win11:         10.50.190.244 = cvte:cvte
+Minas_Tirith:  10.10.0.7     = bombadil:jolly
+Terra:         10.10.0.6     = garviel:lina
+Workstation 1: 10.10.0.5     = (rdp) student:password
+Workstation 2: 10.10.0.4     = 
+File-Server:   10.10.0.3     =
+DC: 	       10.10.0.10
 =========
 Commands
 get-process | get-member -membertype "Property "  - List all processes with member type admin
@@ -7,7 +16,7 @@ get-process | get-member -membertype "Property "  - List all processes with memb
 where-object  - Filters results kind of
 -definition "string" - specifies a string
 Get-CimInstance Win32-service -filter "name='legoland'" | select-object name,description - Find a specific service 
-compare-object -ReferenceObject (GetContent .\old.txt) -differenceobject (Get-Content .\new.txt) - compare different files that are unique
+compare-object -ReferenceObject (GetContent .\old.txt) -differencseobject (Get-Content .\new.txt) - compare different files that are unique
 get-content ~.txt | sort-object  | select-object -last 21 - print out last 21 of an ascending sorted list 
 ===============================
 HKLM | HKU | HKCU | HKCC | HKCR
@@ -120,17 +129,323 @@ awk -F: '{print $5}' /etc/passwd - specifically looks for comments in the passwd
 grep -v "nologin" - grep with a not, finds things without the string, very cool
 
 ^^SITUATIONAL AWARENESS^^
+-----
+Windows Boot Process:
+BIOS/EFI > MBR > Vol Boot Sector > Bootmgr.exe > Winload.exe > Ntoskrnl.exe > Smss.exe > Crss.exe > Wininit.exe > Services.exe > svchost.exe
+wininit.exe > lsass.exe
+crss.exe > winlogin.exe > userinit.exe > userinit.exe > explorer.exe
+BIOS UEFI:
+ROM - Read only mem
+EPROM - Erasable Programmable Read only memory
+EEPROM - Electronically Erasable Programmable read only memory
+Flash Mem
+UEFI vs BIOS - Faster, loaded into flash mem/EEPROM, secured boot, drive support
+MBR (Master Boot Record) - Disk Partitions, starts first stage of OS called Boot Loader and starts OS
+UEFI - MBR reads EFI Partition that contains bootmgfw.efi (WinBtmgr)
+**winload.exe = BIOS, winload.efi = UEFI
+UEFI systems - bootmgfw.efi reads BCD (boot config data) to load winload.efi
+BIOS systems - bootmgr reads file \Boot\BCD winload.exe to load basic drivers and the kernel
+winresume.exe reads saved data from hiberfil.sys
+!! For the user subsystems, just look at the FG man
+Session 0 - security and hi priv processes to isolate from a user's processes
+Session 1 - For the user to interact with, contains STANDARD user sessions
+==========================================================================================================================================================================================
+Commands
+findstr /C:"Detected boot environment" "C:\Windows\Panther\Setupact.log"
+Get-Content C:\Windows\Panther\Setupact.log | Select-String "Detected boot environment" - ^both can tell b/w bios/uefi
+bcdedit | findstr /i winload - 2nd Option
+Msinfo32.exe - 3rd opt
+========================
+commands:
+dd if=filename bs=1 skip=START_BYTE count=BYTE_COUNT status=none | md5sum - bs=1:block size, skip=446(skip these bytes), count=16(bytes to read)
+grep initdefault /etc/inittab (find runlevel in sysv)
+ps -p 1 -o comm= - sysv or other (init or idk)
+===========================================================================================================================
+Windows Process Validity:
+Process Validity - Making sure that processes are what they're supposed to be, can be malicious (Mimics, Parasitism, Blending)
+**Other malware being on the box increases chances of adv finding out oco side of things
+Process - Running program | user started or running in background 
+Dynamically Linked Libraries (DLL) - dependent that can be used by multiple progs concurrently | cannot run directly, must be ran by another executable | easily modifiable and modular
+Service - exe ran in background | can start auto/user log on | pausible/restartable | usually not in user interface
+Processes ≈ Services ≈ Daemons
+SysInternals:
+Autoruns - Show mal pers w/in GUI
+Procexp.exe - view processes
+TCPView - view net conn attempts
+AccessChk - view perms
+Handle - view/modify Handle
+ListDLLs - reports Dlls loaded into processes
+GUI options for viewing processes (Powershell)
+- Task Manager | Procexp.exe
+GUI (CMD)
+- services.msc | PsService
+GUI Opts for sched tasks viewing 
+- Task Scheduler | Autoruns
+Autorun Reg Loc:
+- HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+- HKLM\Software\Microsoft\Windows\CurrentVersion\RunOnce
+- HKLM\System\CurrentControlSet\Services
+- HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+- HKCU\Software\Microsoft\Windows\CurrentVersion\RunOnce
+- HKU\<sid>\Software\Microsoft\Windows\CurrentVersion\Run
+- HKU\<sid>\Software\Microsoft\Windows\CurrentVersion\RunOnce
+- HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\ServiceGroupOrder
+- HKEY_LOCAL_MACHINE\CurrentControlSet\Control\GroupOrderList
+GUI Net Conn (Powershell)
+- TCPView
+** win sys executables from: C:\Windows\System32
+** linux /usr/sbin | /bin | /usr/local/sbin
+
+===========================================================================================================================
+Commands:
+Powershell:
+Get-Process | sort -property id | more - view Process sorted by id
++ Select Name, Id, Description - if you want specific fields
++ Get-Process SMSS,CSRSS,LSASS - specific processes
++ Get-Process chrome | foreach {$_.modules} | more - list modules w/ file locations
++ Where-Object ModuleName -like '*chrome*' - only __ related modules
+Get-CimInstance Win32_Process - view process with ppid
++ Get-Member - addtl. props
++ Select Name,ProcessId,ParentProcessId | Sort ProcessId - PID/PPID sorted by PID
++ Select Name, Processid, Pathname - More fields options
+Get-CimInstance - view service info
++ Select Name, Processid, Pathname - read
+Get-Service - view service info pt2
++ Get-Service ALG | Format-List * - specific service and all props in list
++ Where-Object {$_.Status -eq "Running"} - only currently running services
+Get-ScheduledTask | Select * | Select -First 1 - View all props of 1st sched task
+Get-NetTCPConnection -State Established - All conn in specific state
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CMD:
+tasklist | more - view Process
++ /v - verbose
++ /svc - service info
++ /m - modules/dlls Assoc w/ all proc
++ /fi "IMAGENAME eq chrome.exe" - display mods Assoc w/ a specific proc
++ /fo:table | /fo:list | /fo:csv - opt format
+net start - view service info
+sc query - view service info pt2
++ sc queryex type=service - more info all services
++ state=inactive
+sc - service Enum
++ qc - congfig service
++ queryex eventlog - query 'eventlog' service w/ PID
++ qdescription eventlog -  query 'eventlog' service desc
++ qc eventlog - bin comm that loads the service
++ showsid eventlog - display serv sid/stat
++ enumdepend - cannot run unless spec service is running
+net start - all current running services
+schtasks /query /tn "IchBinBosh" /v /fo list - view sched tasks
+netstat
++ -a - all conn/listening ports  
++ -n - num addy/ports
++ -o - pid own
++ -b - exe involved w/ conn
++ netstat -anob 
+===========================================================================================================================
+User Account Control:
+UAC - privilege limitation of user-run apps, including admin | elev actions req explicit approval| admin can approve, others must prov creds | HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System | similar to sudo
+
+Trust Level Colors:
+- Red: application or publisher blocked by policy
+- Blue and gold: administrative application
+- Blue: trusted and signed application
+- Yellow: unsigned or untrusted application
+RequestedExecutionLevel Options: 
+- asInvoker - same perms as parent proc | can be elevated man
+- requireAdminstrator - runs w/ admin perms | must be in admin group/provide creds
+- highestAvailable - read
+How it works - UAC checks file manifest for instruct on how to run | manifest = metadata defines exe behave
+Auto-elevate - elevate w/o uac prompt
+Viewing Manifest Settings:
+sigcheck - viewing of manifest settings
+fodhelper.exe - manage opt features | located in C:\Windows\System32
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System - UAC Values
+===============
+Commands: 
+net use * http://live.sysinternals.com - map share
+./sigcheck -m C:\Windows\System32\slui.exe - view manifest settings 
++ slui.exe - auto-elevate example
++ regedit.exe - highest Available example
+./strings -s c:\windows\system32\*.exe | findstr /i autoelevate - locate autoelevate refer
+---------------------------------------------------------------------------------------------------------------------------
+SysInternals:
+- Collection of adv sys utils for windows | From site 
+Procmon - adv monitoring tool | filemon + regmon | can log on boot | Captures: Reg, filesys, net, proc, and profiling
+Autoruns - show auto run apps during sys boot/login | reg and filesys for auto-start configs
+	 - Pink ~ Np pub info | Green ~ Item not present prev | Yellow ~ Entry Exists, targ file/job does not exist
+	 - Looks in All, Explorer, Logon, IE
+ProcExp - Task Manager/System Monitor | Running Process info | Should be run as admin | 
+	- Green ~ New objects | Red ~ Deleted objects | Lavender ~ Own processes | Salmon ~ Services | Gray ~ Suspended processes | Purple ~ Packed images | Cyan ~ Immersive processes
+TCPView - show list of all TCP/UDP endpoints | local/remote addy | netstat+ | net conn | red - net conn term, green - conn made
+PSExec - lighter telnet | execute proc on other sys | supports interactions b/w console app | no need to man install cli soft
++ -s - runas Sysacc | -i - interact w/ desktop | -c - copy spec prog to remsys to exe
+PSLoggedon - 
+===========================================================================================================================
+Commands:
+net use * http://live.sysinternals.com - create conn to sysinternals
+(PS) New-PSDrive -Name "SysInt" -PSProvider FileSystem -Root "\\live.sysinternals.com\Tools" - temp/persistent conn to sysintern
+
+Get-Process | foreach {$_.modules}| more | Where-Object { $_.ModuleName -notmatch ".dll"} | where-object { $_.filename -notmatch "System32"} - look for exe !eq to dll and not in Sys32
+Get-CimInstance Spooler | Select-Object Name, DisplayName, State, PathName = look for a service
+ Get-Acl -Path "C:\Windows\System32\spoolsv.exe" | Select-Object -ExpandProperty Access - Check perms on the service
++ Get-Acl -Path "C:\Windows\System32\spoolsv.exe" | Format-List - pretty
+./psservice query "Windows Defender Firewall" - Looks up a specific service
++ net start | more - checks all services
+(cmd) sc query state= all - all services running and not
+sc getkeyname "Totally-Legit" - search for service name using display name
+sc showsid  "Legit" - shows sid of service name
+===========================================================================================================================
+Linux Process Validity
+Process Listing:
+ps | top | htop
+Startup Processes:
+/sbin/init - pid of 1 and ppid of 0
+[filler name] - kthreadd spawned processes w/ ppid 2
+Virtual Memory:
+Kernel mode - Unrestricted access to proc/main mem (ring 0)
+User Mode - relegated to a small subset of mem w/ limited access
+Process Ownership (To include EUID, RUID, UID):
+UID - User ID
+process - running instance of prog
+*All processes have a unique PID
+/sbin/init and /lib/systemd/systemd - Always PID 1
+Users - Human | System
+EUID - Effective User ID | access rights for a process defined by the user perms
+RUID - Real User ID | which user can send signals to a process
+System Calls:
+- Interaction b/w process/kernel | prograam request service from kernel
+fork - duplicates calling process into a child | calling process is parent
+exec - process call exec, kernel start prog and replaces curr proc
+Signals - software interrupts
+        - Stop 19 | End 15 | Kill 9
+Fore/Background Processes:
+Foreground Process - req user interaction | prog/comm default to foreground
+background - ran indendent of the user
+orphan - parent process has finished and adopted by sbin/init w/ ppid 1
+zombie - completed execution but not kill by parent process | takes up pids | killed only thru ppid
+daemon - runs as bg ps | always orphans (not vice versa) | manage/monitor service | should persist thru entire sys ops | init parent | service | naming convention adds 'd' to service names 
+Job Control - stop/suspend/continue/resume exe of proc
+Cron Jobs:
+Cron - Run on fixed sched | checks /var/spool/cron, /etc/cron.d, /etc/crontab
+Cron types - System: root run, maintenance tasks, controlled by /etc/crontab | User: crontab comm, stored in/var/spool/cron/crontabs/
+min > hr > month day > month > week day
+Processes and Proc:
+/proc/ - contains special files w/ curr state of the kernel 
+File Descriptors - identifier that represents that file for the os 
+
+===========================================================================================================================
+Commands:
+ps - snapshots of curr ps
++ -elf - more opts
++ -elf --sort=ppid
++ -elf --ppid 3 - only show parent process id of 3
+top - dynamic view of ps
+htop - top but for human
+grep UID /etc/login.defsshow - show system/human UIDs
+kill -9 <PID> or pkill -9 <process name> - kill via pid/name
+kill -l - show kill signal options
+disown -a && exit - close shell and force all children to be adopted
+sudo ls -l /proc/1308/fd - show specific processs handles/loc associated using pid. need root perms
+(SYSV) service <servicename> status/start/stop/restart - for services
+(Systemd) systemctl list-units - show all unit files (.service)
++ --all - all units loaded/attempted to load ino memory
+(Systemd) systemctl status <servicename.service> - check service stat
+(Systemd) systemctl start/stop/restart <servicename.service> - self-explanatory
+crontab
++ -u [user] file - load crontab data from file
++ -l - list user crontab contents
++ -r - remove users crontab contents
++ -e - edit user's crontab contents
+sudo lsof | grep service - view file descriptors by a specific service
+ls -l /proc/ - proc dir
++ /proc/<pid> - contents for that pid
+---------------------------------------------------------------------------------------------------------------------------
+Windows Auditing and Logging:
+Windows Artifacts:
+- UserAssist | Windows Background Activity Moderator | Recycle Bin | Prefetch | Jump Lists | Recent Files | Browser Artifacts
+Artifact - object/area w/in cino systen w/ important info 
+Security Identifier (SID) - Access user-specific reg loc
+UserAssist - tracks GUI-based programs ran by users
+ 	   - HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist\{GUID}\Count\
+	   - UserAssist GUID - CEBFF5CD-ACE2-4F4F-9178-9926F41749EA
+	   - Lists app, files links, etc - F4E57C4B-2036-45F0-A9AB-443BCFE33D9F
+	   - Encoded in ROT13
+Windows Background Activity Moderator (BAM):
+- Ctrl bg app activity 
+- HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\bam\State\UserSettings - 1809 and newer
+- HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\bam\UserSettings - 1803 and below
+Recycle Bin:
+- deleted files go into here | find content: sid, timestamp, $RXXXXXX (deleted files content), $IXXXXXX (original PATH/name) | C:\$Recycle.bin
+Prefetch: 
+- created by winos when app is run from a spec loc for the first time | .PF | recycled entries can be retrieved and see which programs have been executed | 
+- 128 files on win 7 | 1024 files on win 8-10
+- Windows Server does not have prefetch enabled | Pecmd.exe analyze prefetch data | get format of prefetch file: exeName-pathHash.pf | loc: C:Windows\Prefetch
+Jump Lists:
+- taskbar to jump/access items freq/recently quickly
+- stored in automatic destinations folder | file prepended w/ AppID of assoc app
+- 1st time of exe of app | creation time | last execution of app | mod time
+Locations - C:\%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations (Win 7/8/9)
+	  - C:\%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations (Explorer)
+	  - C:\Users\king\AppData\Roaming\Microsoft\Windows\Recent (??)
+Recent Files:
+- Tracks last files/folders opened to populate data in Recent | tracks 150 files/folders
+loc - HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs
+    - HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs\.txt
+Browser Artifacts:
+- details for each user acc | # of times site is visited | shows history of files opened remotely thru sites and downloaded onto the local system
+Location - %USERPROFILE%\AppData\Local\Google\Chrome\User Data\Default\history (win 7/8/9)
+	 - C:\Users\andy.dwyer\AppData\Local\Google\Chrome\User Data\Default\
+Auditing:
+EventLogs:
+- Records Events | Application | Security | System
+- *.evtx files
+- Windows Event View Application 
+Powershell Artifacts:
+C:\Users\username\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt 
+powershell script block logging - records blocks of code as they are executed by ps engine | capture full contents of code by attker
+- Default no logs are gen'd in powershell
+===========================================================================================================================
+Get-LocalUser - shows local users SIDs
++ select-object name,sid - show name w/ sid
+Get-WmiObject - shows local/domain users and SIDs
+wmic UserAccount get name,sid - show local users and SIDs
+Get-ComputerInfo | select osname,osversion,osHardwareAbstractionLayer - get os version
+systeminfo - show system info 
+Get-Childitem 'C:\$RECYCLE.BIN' -Recurse -Verbose -Force | select FullName - all items in rbin
+Get-Content C:\$Recycle.Bin\S-1-5-21-1584283910-3275287195-1754958050-1005\$*R8QZ1U8.txt* - find artifact at to a specific user
+Get-Childitem -Recurse $env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Recent -ErrorAction SilentlyContinue | select FullName,LastAccessTime - find recently used files
+Get-Item 'Registry::\HKEY_USERS\*\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs\.txt' - see what file/info was viewed
+Get-Item 'Registry::\HKEY_USERS\*\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs\.*' - query hex val in key
+Z:\strings.exe 'C:\users\andy.dwyer\AppData\Local\Google\Chrome\User Data\Default\History' -accepteula - sqlite text files
+Z:\strings.exe 'C:\users\andy.dwyer\AppData\Local\Google\Chrome\User Data\Default\Top Sites' - most visited
+Z:\strings.exe  'C:\users\andy.dwyer\AppData\Local\Google\Chrome\User Data\Default\Login Data' - usernames
+auditpol /get /category:*  - enable audit access
+auditpol /get /category:"Object Access" - show all audit policy settings
+auditpol /get /subcategory:"File System" - Show all object access subcat settings
+auditpol /set /subcategory:"File System"
++ auditpol /get /subcategory:"File System" - show file system subcat setting
+auditpol /set /subcategory:"File System" /success:disable - settings to default
+Get-Eventlog | Get-WinEvent | wevtutil - see logs
+wevtutil el | find /c /v ""list all audiit policy cat and subcats amd their settings
+ Get-EventLog -LogName System -Newest 10 - See EventLog 
++ | Format-Table -Wrap 
+Get-Eventlog -LogName Security | ft -wrap <1> - see entire message
+Get-WinEvent -Listlog - Find Log type to query
++ Get-WinEvent -Listlog * | findstr /i "Security"
+Get-Winevent -FilterHashtable @{logname='Security';id='4624'} | ft -Wrap  - check if a user logged in
+Get-WinEvent Microsoft-Windows-PowerShell/Operational | Where-Object {$\_.Message -ilike "RunspacePool"} | Format-List - ps operational logs
+Start-Transcript - records ps session
+get-history - every cmd in a ps session
+reg add HKLM\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging\ /v EnableScriptBlockLogging /t REG_DWORD /d 1 /f - enable script block logging
 
 
 
 
 
 
-
-
-===========
-
-
+VERY NOT RELATED
+https://www.mcbbutler.marines.mil/Base-Information/Installation-Safety-Office/#driving-in-okinawa
 
 
 
