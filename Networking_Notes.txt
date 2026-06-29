@@ -525,7 +525,7 @@ BIH$ proxychains nc x.x.x.x 22
 BIH$ proxychains wget -r http://
 BIH$ proxychains wget -r ftp:// 
 BIH$ proxychains scp user@:x.x.x.x/usr/share/cctc/file.png .
-BIH$ proxychains ./scan.sh
+> BIH$ proxychains ./scan.sh
 
 
 
