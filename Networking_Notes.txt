@@ -1,0 +1,535 @@
+20260622 - 
+Notes
+===========================================================================================================================
+Float IP: 10.50.16.76 | student:password
+Blue_DMZ_Host-1: 172.16.1.15
+red-internet-host: 10.49.189.76 port 22 | netX_studentX:passwordX
+Red Boundary Router: 172.16.120.1 port 22 vyos:password
+T1: 10.10.0.40 
+
+Red stuff:
+T1: 10.49.189.76 | net3_student6:password6
+Red Boundary Router: 172.16.120.1 port 22 | vyos:password
+T2: 172.16.182.110
+T3: 172.16.140.33
+T4: 172.16.182.106
+T5: 172.16.182.114
+T6: 172.16.182.118
+T7: 172.16.140.35
+===========================================================================================================================
+OSI MODEL:		TCP/IP MODEL:		PDU:		Layer Protocols:		Devices:
+1. Physical		Network Access		Bit		[Ethernet,TokenRing		Hubs
+2. Data	Link		Network Access		Frame		PPP,ATM]			Switch
+3. Network		Internet		Packet		ARP,ICMP,IGMP,IP,IPSEC		Routers
+4. Transport		Transport		Segment		!TCP,!UDP,RTP,SCTP,DCCP
+5. Sessions		Application		Data		[DNS,FTP,SNMP,SSH
+6. Presentation		Application		Data		SMTP,POP3,LDAP,SMB
+7. Application		Application		Data		SSL,TLS,NETBIOS]
+===========================================================================================================================
+Network Fundamentals:
+NETWORK ACCESS LAYER:
+Topologies - Bus | Star | Ring | Mesh | Wireless | Hierarchical
+Devices -  Hubs | Switches | Routes | Repeaters
+LAN Tech/Standards - Eth:802.3(x) | Wireless:802.11(x) | LLC:802.2
+- Ethernet - Easy, Cheap, Fast and Consistent | Cabling
+- LLC - interoperable, multi-protocols | Extra layers to network, processing/overhead
+- WiFi - easy, cableless | net interference, half-duplex
+Frames - Header:Layer 2-7 | Data:Payload | Footer:??
+- Encapsulated, header added per layer
+Switch - builds MAC Address Table to forward frames to Dst | Max 48 interfaces/ports
+- Switch Modes - Cut-Thru | Fragment-Free | Store-and-Forward
+- CAM Table Overflow Attack - similar to ARP poisoning and after being filled it stops learning MAC addys
+MAC Addressing - 48 bit or 6 byte or 12 Hex | OUI - 24 bits assigned by IANA, Vendor Assigned - Last 24 is Vendor Assigned
+- MAC Addy Types - Unicast:1to1 | Multicast:1toGroup | Broadcast:1toAll
+Ethernet Header and Frames - 14bytes:MAC Header/Trailer | 46-1500bytes:Data | 4bytes:CRF/FCS
+VLAN Types - Default | Data | Voice | Management | Native
+ARP - ARP | RARP(ReqOP=3;RspOP=4) | Proxy ARP | Gratuitous ARP
+ARP Cache - Resolve MAC to IP | if MAC !cached, then ARP | dyn entries last 2-20 | Def Gateway | dupeable
+VLAN Trunking Protocol - Cisco | Modes: Server, Client, Transparent | 
+- Vulnerabilities - Can cause switch to dump vlan info| DoS-able since switch !support config VLANS
+DTP (Dynamic Trunking Protocol) - Create Trunk Links dyn | Modes: Auto, Desirable | send mesgs to form VLAN trunk links 
+- For Disabling DTP Negotiations or manually assigning Access/Trunk
+CDP (Cisco Discovery Protocol) - Leaker | Clears txt | Default enabled 
+STP (Spanning Tree Protocol) 
+- Process: 1. Choose RootBridge 	       2. Identify Root ports on non-root bridge
+ 	   3. Identify design port for segment 4. set allt ports to block state 
+Port Security - Modes: Shutdown, Protect, Restrict 
+- Good - restrict access | limit MAC addy learned | prevent CAM table overflow atks
+- Bad - MAC Spoofing possibility
+Layer 2 Atk Miti Techniques - Shutdown unused ports | enable stuff | IP Src Guard | Manually assign STP Root | BDPU Guard | DHCP Snooping | ETC
+NETWORK LAYER:
+Functions - Address Schemes for Net (Log Addy) - Routing | Encaps | IP Frag | Error Handling/Diagnostics
+IP Versions - IPv4 | IPv6
+IPv4 Types - Unicast | Multicast | Broadcast
+Scopes - Public | Private | loopback 127.0.0.0/8 | Link-local(APIPA) | multicast (Class D)
+IPv4 Fragmentation - Breaks Packets down | Router done | MF flag is on from 1st until 2nd to last | Offset is on from 2nd until the last | Offset = (MTU - (IHL x 4)) ÷ 8
+IPv6 Fragmentation - does not support | src adjust MTU to !frag | src can use ipv6 frag ext header
+Frag Vuln - frags overlap to avoid FW det | atk depends on how OS deals w/ the overlap
+Fun Fingerprint Facts - Lin:64TTL | Win:128TTL | Cisco:255TTL
+IPv4 Auto Configs - APIPA:169.254.0.0/16 | DHCP
+ICMPv4 - Types:Codes => 0:0 | 1 | 2 | 3:0-15 | 4:0 | 5:0-3 | 6 | 7 | 8 | 9 | 10 | 11:0-1 | 12:0-2 | 13 | 14
+ICMPv4 traceroute - identify route b//w src and dst | uses ICMP, UDP, TCP
+IPv6 Addressing - 128bit address | 32 hex digits | ex: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+- Address Types - Unicast | Multicast | Anycast
+Neighbor Disc Protocol (NDP) - Router Solicitation | Router Advertisement | Neighbor Solicitation | Neighbor Advertisement | Redirect
+Routing Tables - where what goes
+Admin Distance - Conn:0 | Stat:1 | EIGRP:5 | ExtBGP:20 | IntEIGRP:90 | IGRP:100 | OSPF:110 | IS-IS:115 | RIP:120 | ExtEIGRP:170 | IntBGP:200
+IGP - Interior Gateway Protocol | In <-> In 
+EGP - External Gateway Protocol | Outside <-> In 
+Autonomous Systems - Connected IP rout under 1+ net ops for a defined policy to the internet
+Distance Vector Routing Protocols - Knows about neighbor
+Link State Routing Protocols - Knows about big net
+RP Vulnerabilities - DDOS | Posoin | Hit and Run | Persistent Atks
+BGP - Inet Roadmap | route traffic b/w AS | Advert IP CIDR addy blocks | establishes Peer relat | comp config and slow path selection
+Static Routing - manual route | does not auto update | human error/time consuming
+Dynamic Routing - Auto route | Easy to config and maintain | Consumes bandwidth | updates can be intercepted | Scales 
+First Hop Redundancy Protocols - HSRP | VRRP | GLBP 
+===========================================================================================================================
+COMMANDS:
+Networking Fundamentals
+wget http://10.49.0.1:8080/class/networking/conv.py - hex/dec conversion tool
+wget http://10.49.0.1:8080/class/networking/mac_oui_lookup.py - MAC oui lookup tool
+wget http://10.49.0.1:8080/class/networking/frag.py - Frag calc
+wget http://10.49.0.1:8080/class/networking/bgp.py - bgp as lookup 
+traceroute(Linux):
+traceroute -U
+traceroute (-I -T) <addy> (-p) <port#>
+ifconfig - shows host machine's ip
+ssh -X - open app from target machine on our machine
+IP ADDR - view ip
+ip neighbor | arp -a - view arp cache
+ss -antlp - TCP sockets
+ss -anulp - UDP sockets
+netstat -ano - both UDP and TCP sockets
+vi | vim | nano - edit
+ps -elf | top | htop - view active processes
+nautilus | pcmanfm - open file man from x11 conn
+eog | nomacs | eom | gimp - open imgs
+find / -iname <file> 2>/dev/null - find something
+nmap - Net Scanning
+-sT - TCP full conn
+-sS - TCP SYN scan
+-Pn - Disable ping sweep
+-sU - UDP scan
+-p  - Scan all ports
+zenmap - Net scanning
+netcat - Net Scanning
+-nzvw1 x.x.x.x 80 - TCP
+-unzvw1 x.x.x.x 69 - UDP 
+ping - pings {
+ping 172.16.82.106 -c 1
+for i in {1..254}; do (ping -c 1 172.16.82.$i | grep "bytes from" &) ; don
+}
+traceroute - ping pong
+iftop | iptraf-ng - Net Utilization
+scapy | hping3 | yersinia -G - Packet Manip
+Wireshark | tcpdump | p0f | tshark - Packet Sniffing
+Banner Grabbing {
+nc x.x.x.x 22 - client
+nc -lvp 1234 - listener
+telnet x.x.x.x port
+wget -r http://x.x.x.x:p
+curl http://x.x.x.x.:p
+}
+DNS query{
+whois <FQDN>
+dig domainName 
+- A - IPV4
+- AAAA - IPV6
+- NS - Name Server
+- SOA - Start of Auth
+- MX - Mail Server
+- TXT - Human Readable Message
+- AXFR - Zone Transfer
+}
+- user@x.x.x.x:<absPath> .
+nc x.x.x.x # < <file>
+-lvp 
+===========================================================================================================================
+CTF THINGS 1
+ARP MitM attacks sources is the src grabbing from another MAC
+ARP storm sources find in ARP source
+RARP requestor is dst
+gratuitous ARPs suspect is src IP
+In wireshark cdp filter will show
+===========================================================================================================================
+Layers 4 - 7 Transport to Application Layer
+Transport Layer 4:
+- Connection-oriented:TCP/Unicast | Connectionless:UDP/Broad/Multi/Uni 
+Port Ranges - System:0-1023 | User:1024-49151 | Private(Client/Requestor):49152-65535
+TCP - Est Conn (3-way Handshake) | Data Transfer (Est phase) | Conn Term (FIN+ACL > ACL > FIN+ACK > ACK), conn reset
+TCP Flags - CWR | ECE | URG | ACK | PSH | RST | SYN | FIN
+TCP States - LISTEN | SYN-SENT | SYN-RECEIVED | ESTABLISHED | FIN-WAIT 1/2 | CLOSE-WAIT | CLOSING | LAST-ACK | TIME-WAIT | CLOSED
+TCP Options - 0:End of Options | 1:No Options (NOP) | 2:Maximum Segment Size (MSS) | 3:TCP Windows Scaling | 4:Selective ACK (SACK) Permitted | 5:SACK | 8:TCP Timestamps
+Session Layer 5:
+VPN- Remote Access | Site-to-Site
+L2TP - Tunnel w/ No Encryption
+PPTP - Obsolete w/ Encryption
+L2F - Tunnel w/ No Encryption | Requires L2F Net Server and Access Concentrator
+IPSEC - Transport | Tunnel
+IPSEC Headers - ESP:Prot50 | AH:Prot51 | IKE:UDP500/4500
+OPENVPN - Open src | OpenSSL for encryption | UDP*/TCP1194
+Proxies - Forward:IP/Proxy Adv | Reverse:!Forward | Transparent:IP/Proxy Adv | Anonymous:!Cli, Proxy adv | Elite/High-Anon: IP/proxy adv
+Socks 4/5(TCP1080) - Cli/Svr exchange msg | cli prov/request aut/conn to server | no Auth | ipv4 | !supp udp | !proxy binding | cli IP !relayed to dst
+NETBIOS - TCP139 | UDP137/138  | 15 char name resol | replaced by DNS
+SMB/CIFS - Dgram:UDP138 | Session:TCP139 | SAMBA/CIFS flavors of SMB
+RPC - execute requests on local/remote systems
+API - allows software to communicate back and forth
+OSI Layer 6:
+- Translation | Formatting | Enconding | Encryption | Compression
+Data Encryption - Symmetric | Asymmetric
+Data Compression - ZIP | TAR | RAR | 7z | CAB
+Application Layer 7:
+Telnet - TCP23 | Remote log | Auth | clr txt | interceptible
+SSH - TCP22 | cli/srvr auth | assym/PKI key exchange | Symm for sess | user auth | data strm channel
+SSH Components - cli/svr/sess 
+Keys - User:Asymm for user id | Host:Asymm for svr id | Session:Symm key prot sess comms
+SSH Arch - TRANS | USERAUTH | CONNECT
+Implementation Concerns - pwd auth only | key rot/management 
+Known-Hosts Database - ~/.ssh/known_hosts
+Client Config - /etc/ssh/ssh_config
+Server Config - /etc/ssh/sshd_config
+HTTPS - TCP80/443
+HTTP User Req methods - GET | HEAD | POST | PUT | DELETE | PATCH 
+SVR Resp Code - 100 | 200 | 300 | etc
+UDP Internet Conn - UDP443 | Integrated HTTP/3
+HTTPS Vul - Flood | Amplification | Low/Slow | Drive-by | BeEF Framework
+DNS - TCP/UDP 53
+Query/Response - Resolves Name to IP | UDP | TCP:>512bytes or Zone Transfer/Security
+Lvl 1 domains - Generic:.com, .org, .net, .mil, .gov | Country:.us, .uk, .de, .ru, .cn
+Lvl 2 domains - EX: .com = google.com
+Sub Domains - EX: mail.google.com
+FTP - TCP 20/21 | Ctrl/Data
+- Auth/Anon | Clr txt 
+Modes - Active:Traversal and Tunneling Issues | Passive
+TFTP - Clr-Txt | routers/switches transfering files
+SMTP - TCP25 | email | !encrytion | TCP ports 587/465
+POP - TCP110 | Email | !Server Sync | !encryption | POP3
+IMAP - TCP143 | Email | Server Sync | !encryption | IMAP4
+DHCP - UDP67/68 | Servers on 67 | Cli on 68
+DHCP DORA - Discover(Broadcast) | Offer(Unicast) | Request(Broadcast) | Acknowledge(Unicast)
+DHCP SARR - Solicit (Multicast) | Advertise (Unicast) | Request or Information Request (Multicast) | Reply (Unicast)
+NTP - UDP123 | Strat0:auth time src | Max stat15 | vuln to crafted packet injection
+TACACS - TCP49 
+RADIUS - UDP1645/1646/1812/1813
+Diameter - TCP3868
+SNMP - UDP161/162
+- SNMP Manager (Server) | SNMP Agents (Clients) | Management Information Base (MIB)
+Message Types - Get Req | Set Req | Get Next | Get Bulk | Response | Trap | Inform
+SNMP Vuln (v1/v2) - Weak community str  | lack encryption | info disc | sniffa
+RTP - UDP1023+ | VoIP | Streaming Media
+RDP - TCP3389 | Microsoft made | no server software | needs 3rd party software
+Kerberos - TCP/UDP88 | secure net auth | cli obtain tickets | mutual auth | AD used
+LDAP - TCP 389/636 | cli server model | Hiearchical | directory schema
+===========================================================================================================================
+Commands:
+{
+ssh
+-p {port} - Alternate port
+-l {username} - Specify the username
+-X - Enable X11 forwarding
+-v(vv) - Add logging and debugging
+-i {identity file} - Specify a private key identity
+-F {config file} - Specify an alternate user config file
+-N - Do not send remote commands
+-T - Do not create a pseudo vty
+-C - Enable compression
+-f - Backgroud process after authentication
+-J user@host - Proxy jump
+-L [bind_address:]port:host:hostport
+-R [bind_address:]port:host:hostport
+-D {port}
+}
+cat /etc/ssh/sshd_config | grep Port - view curr config ssh [prt
+sudo nano /etc/ssh/sshd_config - edit ssh port
+systemctl restart ssh - restart ssh
+ssh-copy-id student@172.16.82.106 - copy ssh pub key to remote server | saves to ~/.ssh/authorized_keys
+===========================================================================================================================
+Traffic Capture:
+Packet Capturers - Software | Hardware 
+Socket Types - User Space:Stream(TCP)/Datagram(UDP) | Kernel Space Sockets:RAW20
+Sniffing Types - Active | Passive
+===========================================================================================================================
+CTF THINGS 3:
+Initial sequence numbers are the hex in the packet (2 bytes long, offset 2, 3 bytes in)
+tcpdump 'tcp[0:2]>1024 || udp[0:2]>1024' -r /home/activity_resources/pcaps/BPFCheck.pcap | wc -l - src ports greater than 1024
+tcpdump 'tcp[13] = 0x14 || tcp[13] = 0x11' -r /home/activity_resources/pcaps/BPFCheck.pcap | wc -l - ACK/RST or ACK/FIN set
+ip[4:2] = 0xd5' - ip id of 213
+ether[12:2] = 0x8100 - contains VLAN tag
+tcp[2:2] = 53 ||  udp[2:2] = 53 || udp[0:2] = 53 || tcp[0:2] = 53 - DNS shenanigans
+===========================================================================================================================
+Packet Creation and Socket Programming:
+Socket Types - Stream | Datagram | RAW
+Stream - Conn oriented | sequenced | TCP SCTP Bluetooth
+Datagram - Connectionless | quick send/receive | UDP 
+RAW - Direct send/receive w/o auto prot formatting
+User Space Sockets - Common w/o need of root priv | Stream | Datagram
+Kernel Space Sockets - access hardware on behalf of user app | RAW
+socket.socket():
+- socket.socket( *family*, *type*, *proto*)
+- family - AF_INET*, AF_INET6, AF_UNIX
+- type - SOCK_STREAM*, SOCK_DGRAM, SOCK_RAW
+- proto - 0*, IPPROTO_TCP, IPPROTO_UDP, IPPROTO_IP, IPPROTO_ICMP, IPPROTO_RAW
+socket.bind() - binds srvr lst port to addy
+socket.sendall() - repeats send until all data sent | s.sendall(b"Hello World")
+socket.sento() - data over udp | s.sendto(b"Hello World", ("172.16.1.15", 1111))
+**Set up listening ports before sending data**
+Raw IPv4 Sockets:
+- must include IP header and next headers | needs guidance from req for comments (RFC) to follow header structure | see RFC 791 Sec. 3
+Encoding - bits converted using cipher | no key needed
+Decoding - Reversal of Encoding
+===========================================================================================================================
+Commands:
+echo "thanks for the message" | nc -l -p 2222
+echo "thanks for the message" | nc -l -p 2222 -u
+===========================================================================================================================
+File Transfer and Redirection:
+Methods - TFTP | FTP(Active Passive) | SFTP | SCP
+TFTP - UDP69 | Light/simple | no term conn | insecure | no dir serv | use BOOTP and PXE
+FTP - TCP20/21 | 2 sep connections | 21 Control | 20 Data | clear txt auth | insecure def config  | dir services | anon login
+Active FTP - data served to you 
+Passive FTP - you retrieve the data
+FTPS - Adds SSL/TLS encryption | interactive tty | explicit: port 20/21 | implicit: port 989/990
+SFTP - tcp22 | symm/asymm encryption | ftp services to ssh | auth thru credentials/ssh keys | interactive tty access
+SCP - TCP 22 | symm/asymm encryption | auth thru credentials/ssh keys | non-interactive
+Netcat - r/w data across net sock conns using tcp/ip
+Netcat modes - server: nc -lvp 1111 | client:nc 10.10.0.40 1111
+Pipes - Named | Unamed
+File Descriptors - 0:STD IN | 1:STD OUT | 2:STD ERROR
+Packing - code to compress exe | reduce net traffic | obf | reduce time on target
+Encoding - Transmission and storage
+
+===========================================================================================================================
+Commands:
+wget -r ftp://10.0.0.104 - ftp passive pull everything from that port
+scp {
+-. - Present working directory
+-v - verbose mode
+-P - alternate port
+-r - recursively copy an entire directory
+-3 - 3-way copy
+scp student@172.16.82.106:secretstuff.txt /home/student - dl file rem -> local
+scp secretstuff.txt student@172.16.82.106:/home/student - upld file rem -> local
+scp -3 student@172.16.82.106:/home/student/secretstuff.txt student@172.16.82.112:/home/student - cp rem -> rem
+scp -r folder/ student@172.16.82.106: - rec upl to rem
+scp -r student@172.16.82.106:folder/ . - rec dl from rem
+scp -P 1111 student@172.16.82.106:secretstuff.txt . - dl file rem -> local
+scp -P 1111 secretstuff.txt student@172.16.82.106: - upl file to rem <- local
+ssh student@172.16.82.106 -L 1111:localhost:22 - local port fwd to tgt dev
+scp -P 1111 student@localhost:secretstuff.txt /home/student - dl file from rem -> loc
+scp -P 1111 secretstuff.txt student@localhost:/home/student - upl file rem <- local
+}
+cli to lst file transfer {
+nc -lvp 9001 > newfile.txt - Listener(receive)
+nc 172.16.82.106 9001 < file.txt - Client(send)
+}
+lst to cli file transfer{
+nc -lvp 9001 < file.txt - listener(send)
+nc 172.16.82.106 9001 > newfile.txt - client(receive)
+}
+Pipes {
+ip address | grep inet - unnamed 
+mknod pipe p - named
+mkfifo pipe - named 
+}
+port waiting to receive  {
+nc 172.16.40.10 1111 > test3.jpg - host
+nc -lvp 1111 < mypipe | nc 172.16.82.115 6789  > mypipe - relay
+}
+port ready to send {
+nc 172.16.40.10 1111 > test1.jpg - host
+nc -lvp 1111 < mypipe | nc -lvp 3333 > mypipe - - relay
+}
+
+===========================================================================================================================
+Network Reconnaissance Stages:
+- Passive External | Active External | Passive Internal | Active Internal
+Steps - Footprinting | Scanning | Enumeration | Vuln Assessment
+Network Footprinting - Collect target info
+Network Scanning - Scan ports, networks, and vulnerabilities
+Network Enumeration - check shares, users/groups, route tables, audit/service settings, names, apps/banners, snmp/dns details, etc
+Passive External Methods - OSINT | publicly available information | Shallow info gathering
+Vulnerabilities - config files | log files | backup files | test pages | cli-side code
+Dig vs Whois - Dig:queries DNS registrar over TCP43 (info about the owner) | Whois:queries DNS server over UDP53 (name to ip records)
+Passive OS Fingerprinter (p0f) - passive network scanning/packet captures | identify probable OS/OS versions | guess cli/server app/version
+Active External Methods - Active | Passive
+Strategies - Remote <> Local | Local <> Local | Remote <> Remote
+Scanning Approaches - Aim:Wide or Target-specific | Method: Single Source(1to1/1toMany), Distributed(manyto1/manytoMany)
+Vertical Scan - Scan some to all ports on one target
+Horizontal Scan - Scan a single port on a range of targets
+Strobe Scan - scan subset of ports of target range
+Block Scan - scan all ports pm range of targets
+Nmap - Default: User:TCP Full Connect Scan (-sT), Root:TCP SYN Scan (-sS) | scans 1k common tcp/udp ports
+Nmap Port States - open | closed | filtered | unfiltered | open|filtered | closed|filtered
+Nmap Time-out - T0:300sec | T1:15sec | T2:1sec | T3:1sec | T4:500ms | T5:250ms
+Passive Internal:
+- Packet Sniffers - traffic in same local area of network
+Active Internal Methods:
+- Similar to Active External in tool usage | can be different scope/addresses
+network forensics ~ mapping - Diagram Dev | Line Types | written info | color | group
+!!IMPORTANT!!
+given ip -> scan ports 21-23, 80 -> banner grab to determine services -> wget -r 21, 80 -> map it -> ssh into machine -> scan machine -> look in share drive
+!!IMPORTANT!!
+===========================================================================================================================
+Commands: 
+dig zonetransfer.me
+dig A zonetransfer.me A
+nslookup zonetransfer.me
+nslookup -type=A zonetransfer.me
+nslookup -type=A zonetransfer.me 8.8.8.8
+Resolve-DnsName zonetransfer.me
+Resolve-DnsName -type A zonetransfer.me
+Resolve-DnsName -type A zonetransfer.me -Server 8.8.8.8
+sudo p0f -i eth0
+sudo p0f -r test.pcaps
+ping 
+{
+ping x.x.x.x - ping target
+for i in {1..254}; do (ping -c 1 172.16.82.$i | grep "bytes from" &) ; done - ping range
+}
+nmap 
+{
+-sS - SYN scan 
+-sT - Full connect scan 
+-sN - Null scan 
+-sF - FIN scan 
+-sX - XMAS tree scan 
+-sU - UDP scan 
+-sI - Idle scan 
+-D - Decoy
+-sA - ACK/Window
+-sR - RPC
+-b - FTP
+-O - OS fingerprint
+-sV - Version
+-PE - ICMP ping
+-Pn - No Ping
+-PP - Timestamp Disc Probe
+-PM - netmask req disc Probe
+--scan-delay <time> - delay b/w probes
+--max-scan-delay <time> - sets max delay b/w probes
+}
+nc - netcat {
+-z - Port scanning mode i.e. zero I/O mode
+-v - Be verbose [use twice -vv to be more verbose]
+-n - do not resolve ip addresses
+-w1 - Set time out value to 1
+-u - To switch to UDP
+for i in {97..126}; do nc -nvzw1 172.16.82.$i 20-23 80 2>&1 & done | grep -E 'succ|open' - horiz scanning
+nc -nzvw1 172.16.82.106 21-23 80 2>&1 | grep -E 'succ|open' - vert scanning
+nc [Target IP] [Target Port] - Banner grab service
++ -u - udp
+}
+ipconfig /all - ip config
+cat /etc/resolv.conf - dns config
+ip neighbor - arp cache
+ss - network conn {
+-antup
+}
+cat /etc/services - services
+uname -a | /etc/os-release - os info
+ps | top - running process
+which - command path
+ip route - routing table
+find / -iname flag* 2> /dev/null - file search
+ls -al /usr/share/cctc - local share drive
+grep Port /etc/ssh/sshd_config - ssh config
+arp scanning {
+arp-scan --interface=eth0 --localnet
+nmap -sP -PR 172.16.82.96/27
+}
+wget { wget port 80 !!
+wget http://172.16.82.106
+wget -r http://172.16.82.106
+wget -r ftp://172.16.82.106
+wget -r ftp://172.16.82.106 --user=student --password=password
+}
+ping scanning {
+ping -c 1 172.16.82.106
+for i in {1..254}; do (ping -c 1 172.16.82.$i | grep "bytes from" &) ; done
+sudo nmap -sP 172.16.82.96/27
+}
+===========================================================================================================================
+SSH Tunneling and Covert Channels:
+Tunneling - Encapsulates protocol in another protocol | Encapsulation | Transmission | Decapsulation
+Traffic Tunnel - IPv4 to IPv6 migration
+Malware and Attack Malware - Bypass IPv4 sec measures
+Dual Stack - Config IPv4 and IPv6 on all dev | Resource Intensive | Allows IPv4/IPv6 routing
+Covert Channels - Using legitimate Protocols to transmit unauth/hidden info
+Covert Chan - Storage: Payload, Header(IPHeader, TCP Header)
+Covert Types - Timing: Modifying transmission of legitimate traffic
+Detect Covert - Host Analysis: Req knowledge of each app | Net Analysis: Understand net
+Detect Covert using DNS - typically 1 request gets 1 response | not exceed 512 bytes | 
+Steganography - Hide msg in legitimate info | Injection | Substitution | Propagation
+Steg Injection - Insert into whitespace | add size to file
+Steg Substitution - insert message into useless part of file
+SSH - used for tunneling and port forwarding
+Client Configuration File - /etc/ssh/ssh_config
+Server Configuration File - /etc/ssh/sshd_config
+Known Hosts File ~/.ssh/known_hosts
+SSH Architecture - SSH-TRANS/USERAUTH/CONNECT | Setup and Conn | Auth | Multiplexing
+SSH Port Forwarding - creates channels using SSH-Conn | allows tunneling of other services thru SSH | gives services encryption
+ 
+
+===========================================================================================================================
+Commands:
+ssh {
+-L - Creates a port on the client mapped to a ip:port via the server 
+-D - Creates a port on the client and sets up a SOCKS4 proxy tunnel where the target ip:port is specified dynamically
+-R - Creates the port on the server mapped to a ip:port via the client
+!!IMPORTANT!! DO THIS AT THE END OF EVERY TUNNEL vv
+-NT - Do not execute a remote command and disable pseudo-tty (will hang window)
+!!IMPORTANT!! DO THIS AT THE END OF EVERY TUNNEL ^^
+}
+ssh -p <optional port on my machine> <1stuser>@<BH1> -L <myPort>:<tgt ip>:<tgt port> - Local Port Forwarding
+
+
+Tunnel Example:
+net2_student6@tunnels-training-pineland-insider:~$ ssh net2_student6@10.3.0.10 -R 1111:127.0.0.1:22 -NT
+student@blueinternethost:~$ ssh net2_student6@10.49.11.222 -L 2222:127.0.0.1:1111 -NT
+student@blueinternethost:~$ ssh net2_student6@127.0.0.1 -p 2222 -D 9050
+
+===========================================================================================================================
+CTF Things:
+
+xdg-open Sokka-share.png - open images
+
+===========================================================================================================================
+Free Space
+
+nmap -sU -p 1980-1989 -T4 172.16.182.110 - scan udp ports
+nc -u 172.16.182.110 1989 - listen udp port
+
+2000,2011,2200,2250,2999
+
+===========================================================================================================================
+
+===========================================================================================================================
+THE PROCESS
+BIH$ ssh -x pivot # Connect to pivot (ssh most likely) 
+pivot$ ip addr # check internal ip
+pivot$ ip neighbor # check who is connected to it's interfaces
+pivot$ ls -l /usr/share/cctc # check if it exists and pull from it into host machine
+BIH$ ./scan.sh # the internal network of pivot, see its interface
+BIH$ wget -r ftp://pivotIP # grab from 21
+BIH$ wget -r http://pivotIP # grab from 80
+BIH$ eog IP/Image.img # read image file
+
+Local Port Forwarding
+ssh user1@10.49.176.142 -L 1313:192.168.1.39:22 -NT # user will be the pivot user w/ its IP, 1313 refers to a port being opened on the BIH machine and x.x.x.x:22 refers to the TGT's port 22 being tunneled to
+user2@localhost -p 1313 -L  1314:10.0.0.50:22 -NT # subsequent local forwarding; the user is the target user and local host refers to BIH port 1313; -p 1313 refers to the already opened port on BIH but will change on subsequent tunnels; 1314 needs to be a new port for each new  tunnel
+
+Proxy Chains
+BIH$ ssh Katara@localhost -p 1314 -D 9050 # MUST be a port opened up by the Local port forward. The user is who you want to be connected to past the pivot and the localhost refers to the port 1314 opened on itself to tunnel to the TGT
+BIH$ proxychains nc x.x.x.x 22
+BIH$ proxychains wget -r http://
+BIH$ proxychains wget -r ftp:// 
+BIH$ proxychains scp user@:x.x.x.x/usr/share/cctc/file.png .
+BIH$ proxychains ./scan.sh
+
+
+
+===========================================================================================================================
+
+
+
